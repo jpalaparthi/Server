@@ -1,0 +1,72 @@
+//Add
+{
+	"username":"jiten",
+	"password":"muruga the great",
+	"dob":"14-08-1981",
+	"gender":"male",
+	"address":"munipalle,ponnu,guntur",
+	"email":"jitenp@outlook.com",
+	"web":"www.jitenp.com",
+	"contact":"9618558500",
+	"contact2":"9495678100",
+	"roles":["role1","role2"],
+	"status":"inactive",
+	"timestamp":"08-jan-2017 11:15PM"
+}
+
+//Update
+{
+	"id":"58727f737d12fc254a0c0170",
+	"username":"jiten p",
+	"password":"muruga the great",
+	"dob":"14-08-1981",
+	"gender":"male",
+	"address":"munipalle,ponnu,guntur",
+	"email":"jitenp@outlook.com",
+	"web":"www.jitenp.com",
+	"contact":"9618558500",
+	"contact2":"9495678100",
+	"roles":["role1","role2"],
+	"status":"inactive",
+	"timestamp":"08-jan-2017 11:15PM"
+}
+
+//scope add
+{
+	"name":"admin",
+    "desc":"administrator",
+    "scope":"/role/update/",
+    "scope_desc":"update scope",
+	"status":"active",
+	"timestamp":"10-jan-2017 11:15PM"
+}
+
+//scope Update
+{	
+    "id" : "58753c7a95fbe7d884b535a8",
+	"name":"admin",
+    "desc":"administrator",
+    "scope":"/role/update/",
+    "scope_desc":"update scope",
+	"status":"active",
+	"timestamp":"10-jan-2017 11:15PM"
+}
+
+
+
+//role add
+{
+	"name":"admin",
+    "desc":"administrator",
+	"status":"active",
+	"timestamp":"10-jan-2017 11:15PM"
+}
+
+//role update
+{	
+    "id" : "58753c7a95fbe7d884b535a8",
+	"name":"admin",
+    "desc":"administrator",
+	"status":"active",
+	"timestamp":"10-jan-2017 11:15PM"
+}
