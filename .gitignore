@@ -1,0 +1,6 @@
+!.gitignore
+!User-Management
+!mgoSession
+!models
+
+*
