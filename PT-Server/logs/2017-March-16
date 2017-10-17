@@ -1,0 +1,50 @@
+log: 2017/03/16 00:04:07 logutil.go:34: [Call On URI: localhost:9392 /UploadImageForMovie  from the following IP address: [::1]:51515]
+log: 2017/03/16 00:07:44 logutil.go:34: [Call On URI: localhost:9392 /UploadImageForMovie  from the following IP address: [::1]:51575]
+log: 2017/03/16 07:59:19 logutil.go:34: [Call On URI: localhost:9392 /UploadImageForMovie  from the following IP address: [::1]:51728]
+log: 2017/03/16 07:59:19 logutil.go:45: {"message":"Pic successfully uploaded","success":true,"status":200,"trace":"5"}
+log: 2017/03/16 08:10:33 logutil.go:34: [Call On URI: localhost:9392 /UploadImageForMovie  from the following IP address: [::1]:51981]
+log: 2017/03/16 08:10:33 logutil.go:45: {"message":"Pic successfully uploaded","success":true,"status":200,"trace":"6"}
+log: 2017/03/16 08:10:35 logutil.go:34: [Call On URI: localhost:9392 /UploadImageForMovie  from the following IP address: [::1]:51981]
+log: 2017/03/16 08:10:35 logutil.go:45: {"message":"Pic successfully uploaded","success":true,"status":200,"trace":"7"}
+log: 2017/03/16 08:10:36 logutil.go:34: [Call On URI: localhost:9392 /UploadImageForMovie  from the following IP address: [::1]:51981]
+log: 2017/03/16 08:10:36 logutil.go:45: {"message":"Pic successfully uploaded","success":true,"status":200,"trace":"8"}
+log: 2017/03/16 08:10:36 logutil.go:34: [Call On URI: localhost:9392 /UploadImageForMovie  from the following IP address: [::1]:51981]
+log: 2017/03/16 08:10:36 logutil.go:45: {"message":"Pic successfully uploaded","success":true,"status":200,"trace":"9"}
+log: 2017/03/16 08:10:37 logutil.go:34: [Call On URI: localhost:9392 /UploadImageForMovie  from the following IP address: [::1]:51981]
+log: 2017/03/16 08:10:37 logutil.go:45: {"message":"Pic successfully uploaded","success":true,"status":200,"trace":"10"}
+log: 2017/03/16 08:10:43 logutil.go:34: [Call On URI: localhost:9392 /UploadImageForMovie  from the following IP address: [::1]:51981]
+log: 2017/03/16 08:10:44 logutil.go:45: {"message":"flagged","success":true,"status":400,"trace":"58c9fb2c-52fd-fc07-2182-654f-163f5f0f"}
+log: 2017/03/16 08:10:49 logutil.go:34: [Call On URI: localhost:9392 /UploadImageForMovie  from the following IP address: [::1]:51981]
+log: 2017/03/16 08:10:49 logutil.go:45: {"message":"flagged","success":true,"status":400,"trace":"58c9fb31-9a62-1d72-9566-c74d-10037c4d"}
+log: 2017/03/16 08:10:55 logutil.go:34: [Call On URI: localhost:9392 /UploadImageForMovie  from the following IP address: [::1]:51981]
+log: 2017/03/16 08:10:55 logutil.go:45: {"message":"short","success":true,"status":400,"trace":"58c9fb37-7bbb-0407-d1e2-c649-81855ad8"}
+log: 2017/03/16 08:14:58 logutil.go:34: [Call On URI: localhost:9392 /AddMovie  from the following IP address: [::1]:52020]
+log: 2017/03/16 08:14:59 logutil.go:45: {"message":"Movie successfully added","success":true,"status":200,"trace":"58c9fc2a-52fd-fc07-2182-654f-163f5f0f"}
+log: 2017/03/16 08:15:23 logutil.go:34: [Call On URI: localhost:9392 /UploadImageForMovie  from the following IP address: [::1]:52020]
+log: 2017/03/16 08:15:24 logutil.go:45: {"message":"flagged","success":true,"status":400,"trace":"58c9fc43-9a62-1d72-9566-c74d-10037c4d"}
+log: 2017/03/16 08:15:44 logutil.go:34: [Call On URI: localhost:9392 /UploadImageForMovie  from the following IP address: [::1]:52020]
+log: 2017/03/16 08:15:44 logutil.go:45: {"message":"flagged","success":true,"status":400,"trace":"58c9fc58-7bbb-0407-d1e2-c649-81855ad8"}
+log: 2017/03/16 08:15:50 logutil.go:34: [Call On URI: localhost:9392 /UploadImageForMovie  from the following IP address: [::1]:52020]
+log: 2017/03/16 08:15:50 logutil.go:45: {"message":"short","success":true,"status":400,"trace":"58c9fc5e-681d-0d86-d1e9-1e00-167939cb"}
+log: 2017/03/16 08:16:06 logutil.go:34: [Call On URI: localhost:9392 /UploadImageForMovie  from the following IP address: [::1]:52020]
+log: 2017/03/16 08:16:06 logutil.go:45: {"message":"flagged","success":true,"status":400,"trace":"58c9fc6e-6694-d2c4-22ac-d208-a0072939"}
+log: 2017/03/16 08:16:12 logutil.go:34: [Call On URI: localhost:9392 /UploadImageForMovie  from the following IP address: [::1]:52020]
+log: 2017/03/16 08:16:12 logutil.go:45: {"message":"Pic successfully uploaded","success":true,"status":200,"trace":"1"}
+log: 2017/03/16 08:16:15 logutil.go:34: [Call On URI: localhost:9392 /UploadImageForMovie  from the following IP address: [::1]:52020]
+log: 2017/03/16 08:16:15 logutil.go:45: {"message":"Pic successfully uploaded","success":true,"status":200,"trace":"2"}
+log: 2017/03/16 08:16:16 logutil.go:34: [Call On URI: localhost:9392 /UploadImageForMovie  from the following IP address: [::1]:52020]
+log: 2017/03/16 08:16:16 logutil.go:45: {"message":"Pic successfully uploaded","success":true,"status":200,"trace":"3"}
+log: 2017/03/16 08:16:16 logutil.go:34: [Call On URI: localhost:9392 /UploadImageForMovie  from the following IP address: [::1]:52020]
+log: 2017/03/16 08:16:17 logutil.go:45: {"message":"Pic successfully uploaded","success":true,"status":200,"trace":"4"}
+log: 2017/03/16 08:16:17 logutil.go:34: [Call On URI: localhost:9392 /UploadImageForMovie  from the following IP address: [::1]:52020]
+log: 2017/03/16 08:16:17 logutil.go:45: {"message":"Pic successfully uploaded","success":true,"status":200,"trace":"5"}
+log: 2017/03/16 08:16:18 logutil.go:34: [Call On URI: localhost:9392 /UploadImageForMovie  from the following IP address: [::1]:52020]
+log: 2017/03/16 08:16:18 logutil.go:45: {"message":"Pic successfully uploaded","success":true,"status":200,"trace":"6"}
+log: 2017/03/16 08:16:18 logutil.go:34: [Call On URI: localhost:9392 /UploadImageForMovie  from the following IP address: [::1]:52020]
+log: 2017/03/16 08:16:19 logutil.go:45: {"message":"Pic successfully uploaded","success":true,"status":200,"trace":"7"}
+log: 2017/03/16 08:16:19 logutil.go:34: [Call On URI: localhost:9392 /UploadImageForMovie  from the following IP address: [::1]:52020]
+log: 2017/03/16 08:16:19 logutil.go:45: {"message":"Pic successfully uploaded","success":true,"status":200,"trace":"8"}
+log: 2017/03/16 08:16:20 logutil.go:34: [Call On URI: localhost:9392 /UploadImageForMovie  from the following IP address: [::1]:52020]
+log: 2017/03/16 08:16:20 logutil.go:45: {"message":"Pic successfully uploaded","success":true,"status":200,"trace":"9"}
+log: 2017/03/16 08:16:20 logutil.go:34: [Call On URI: localhost:9392 /UploadImageForMovie  from the following IP address: [::1]:52020]
+log: 2017/03/16 08:16:21 logutil.go:45: {"message":"Pic successfully uploaded","success":true,"status":200,"trace":"10"}

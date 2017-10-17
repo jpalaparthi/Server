@@ -1,0 +1,4 @@
+log: 2017/03/15 13:35:24 logutil.go:24: <nil>
+log: 2017/03/15 13:35:24 logutil.go:25: [call from : [::1]:59465]
+log: 2017/03/15 13:35:25 logutil.go:24: <nil>
+log: 2017/03/15 13:35:25 logutil.go:25: [Movie successfully added]

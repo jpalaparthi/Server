@@ -1,0 +1,26 @@
+go get -u github.com/nsf/gocode
+
+
+
+magic query : http://localhost:9392/MagicFetch?max=11&min=4&movieid=58c6bc8e-52fd-fc07-2182-654f-163f5f0f
+
+	defer file.Close()
+	bs, err := ioutil.ReadAll(file)
+	fmt.Println(bs)
+	fileBytes := bytes.NewReader(bs) // convert to io.ReadSeeker type
+
+	fileType := http.DetectContentType(bs)
+	
+	func GetMagicNumbers(max, min, currentCount, noToFetch int) []int {
+	nums := make([]int, noToFetch)
+	j := 0
+	for i := currentCount; i >= 1; i-- {
+		if i >= min || i <= max {
+			if j == noToFetch {
+				break
+			} else {
+				nums[j] = i
+			}
+			j++
+		}
+	}

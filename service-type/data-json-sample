@@ -1,0 +1,39 @@
+requset header 
+"uaername":"admin"
+"password":"admin"
+"role":"admin"
+
+
+request body for add :
+{
+    "_id": "583187a9daa94ba25f33fe60",
+    "catalog": [
+      "Injections-1",
+      "Clothing",
+      "Washing",
+      "Insuline",
+      "Medicine advise"
+    ],
+    "desc": "All other services",
+    "image": "images/other-services.jpg",
+    "service": "Other Medical care",
+    "status": "active",
+    "timestamp": "2016-11-20 00:00:00"
+  }
+
+request body for update:
+{
+    "_id": "583187a9daa94ba25f33fe60",
+    "catalog": [
+      "Injections-1",
+      "Clothing",
+      "Washing",
+      "Insuline",
+      "Medicine advise"
+    ],
+    "desc": "All other services",
+    "image": "images/other-services.jpg",
+    "service": "Other Medical care",
+    "status": "active",
+    "timestamp": "2016-11-20 00:00:00"
+  }

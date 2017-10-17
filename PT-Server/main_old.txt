@@ -1,0 +1,695 @@
+// PT-Server project main.go
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+	"image"
+	_ "image/jpeg"
+	"io"
+	"io/ioutil"
+	"log"
+	"math/rand"
+	"mgoSession"
+	"models"
+	"net/http"
+	"os"
+	"reflect"
+	"strconv"
+	"strings"
+	"sync"
+	"time"
+
+	"github.com/gorilla/mux"
+	"github.com/koyachi/go-nude"
+	_ "github.com/nfnt/resize"
+	"github.com/spf13/viper"
+)
+
+type Processer interface {
+	ProcessAsync()
+}
+
+var (
+	DBConnection, Addr, Root, Quarintine, Invalid, FullImage, MediumImage, Temp, CounterFile string
+)
+
+var (
+	MaxHeight, MaxWidth int
+)
+
+var (
+	chPic chan string
+	//FileMutex *sync.Mutex
+)
+
+var atomicFileName uint64 = 0
+
+var dbSession *mgoSession.Session
+
+var err error
+
+func init() {
+
+	viper.SetConfigName("app")    // no need to include file extension
+	viper.AddConfigPath("config") // set the path of your config file
+
+	err := viper.ReadInConfig()
+
+	if err != nil {
+		fmt.Println("Config file not found...")
+	} else {
+		Addr = viper.GetString("connections.Address")
+		DBConnection = viper.GetString("connections.DBConnection")
+		Root = viper.GetString("directories.Root")
+		Quarintine = viper.GetString("directories.Quarantune")
+		Invalid = viper.GetString("directories.Invalid")
+		FullImage = viper.GetString("directories.FullImage")
+		MediumImage = viper.GetString("directories.MediumImage")
+		CounterFile = viper.GetString("directories.CounterFile")
+		Temp = viper.GetString("directories.Temp")
+		MaxHeight = viper.GetInt("image.MaxHeight")
+		MaxWidth = viper.GetInt("image.MaxWidth")
+	}
+}
+
+func init() {
+	CreateDirectory(Root)
+	chPic = make(chan string, 1)
+}
+
+func main() {
+
+	dbSession, err = mgoSession.New(DBConnection, "local")
+
+	if err != nil {
+		log.Fatal("mongodb database is not connected")
+	} else {
+		log.Println("mongodb session has been created")
+
+		dataServer := http.NewServeMux()
+
+		imageServer := http.NewServeMux()
+
+		dataServer.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+			fmt.Fprintln(w, "Welcome to PT Server")
+
+		})
+
+		dataServer.Handle("/movies/add", MiddlewareHandle(AddMovie()))
+		dataServer.Handle("/movies", MiddlewareHandle(GetAll("movies")))
+		dataServer.Handle("/movies/batch", MiddlewareHandle(GetMoviesByBatchNo()))
+		dataServer.Handle("/movies/movie", MiddlewareHandle(GetMovieByMovieID()))
+		dataServer.Handle("/movies/search", MiddlewareHandle(GetMoviesByKey()))
+
+		dataServer.Handle("/movies/pic/add", MiddlewareHandle(AddPic()))
+		dataServer.Handle("/movies/pics", MiddlewareHandle(GetPicByMovieID()))
+		dataServer.Handle("/movies/pics/pic", MiddlewareHandle(GetPicDetailsByPicID()))
+
+		fs := http.FileServer(http.Dir("Uploads"))
+		imageServer.Handle("/", fs)
+		//dataServer.Handle("/", fs)
+
+		go ValidatePicture()
+
+		http.ListenAndServe(Addr, dataServer)
+
+		http.ListenAndServe(Addr, imageServer)
+	}
+}
+
+//retunes a http.handler based on middleware conditions..
+//if all are passed the argument next is returned. else other handlers are retunred
+//for example unathenticated handler etc..
+func MiddlewareHandle(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Println(reflect.TypeOf(next))
+		if IsAuthenticated(r) {
+			next.ServeHTTP(w, r)
+		} else {
+
+			UnAthenticated().ServeHTTP(w, r)
+		}
+
+	})
+}
+
+func AddMovie() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Println(r.Header.Get("Forwarded"))
+
+		if r.Method != "POST" {
+			WriteToLog("AddMovie", "Error", "this action works only for Post method")
+			WriteResponseMessage(w, "this action works only for Post method", "action works only for Post method", 400, false)
+			return
+		}
+		var buf []byte
+		var M models.Movie
+
+		if r.Header.Get("Content-Type") != "application/json" {
+			WriteResponseMessage(w, "content type should be a in json", "content type should be a in json", 400, false)
+			return
+		}
+
+		buf, err = ioutil.ReadAll(r.Body)
+		if err != nil {
+			WriteResponseMessage(w, "error in reading data from request body", err.Error(), 400, false)
+			return
+		}
+
+		err = json.Unmarshal(buf, &M)
+		if err != nil {
+			WriteResponseMessage(w, "error in converting the data to object", err.Error(), 400, false)
+			return
+		}
+
+		m := make(map[string]interface{}, 1)
+		m["title"] = M.Title
+		result, _ := dbSession.FindByQuery("movies", m)
+
+		if len(result) > 0 {
+			WriteResponseMessage(w, "movie details are alredy existed in the system", "movie details are alredy existed in the system", 400, false)
+			return
+		}
+
+		if models.ValidateMovie(M) != "" {
+			WriteResponseMessage(w, models.ValidateMovie(M), models.ValidateMovie(M), 400, false)
+			return
+		}
+
+		M.MovieId = GUID()
+		err = dbSession.Insert("movies", M)
+
+		if err != nil {
+			WriteResponseMessage(w, "error in insering the data", err.Error(), 400, false)
+			return
+		}
+
+		err = CreateDirectory(Root + M.MovieId)
+		err = CreateFile(Root + M.MovieId + "/" + CounterFile)
+		err = CreateDirectory(Root + M.MovieId + "/" + Quarintine)
+		err = CreateDirectory(Root + M.MovieId + "/" + Invalid)
+		err = CreateDirectory(Root + M.MovieId + "/" + FullImage)
+		err = CreateDirectory(Root + M.MovieId + "/" + MediumImage)
+		err = CreateDirectory(Root + M.MovieId + "/" + Temp)
+
+		if err != nil {
+			WriteResponseMessage(w, "error in creating directory", err.Error(), 400, false)
+			return
+		}
+
+		WriteResponseMessage(w, "Movie successfully added", "", 200, true)
+	})
+}
+
+func GetMoviesByBatchNo() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != "GET" {
+			WriteResponseMessage(w, "this action works only with get method", "action works only for Post method", 400, false)
+			return
+		}
+		vars := r.URL.Query()
+		batchno := vars["batchno"]
+		m := make(map[string]interface{}, 1)
+
+		m["batchno"] = batchno[0]
+		result, err := dbSession.FindByQueryAll("movies", m)
+		if err != nil {
+			WriteResponseMessage(w, "error in db connection", err.Error(), 400, false)
+			return
+		}
+
+		if len(result) < 1 {
+			WriteResponseMessage(w, "no data available", "no data available", 400, false)
+			return
+		}
+		jData, err := json.Marshal(result)
+		if err != nil {
+			WriteResponseMessage(w, "error in reading the result", err.Error(), 400, false)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(jData)
+
+	})
+}
+
+func GetMovieByMovieID() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != "GET" {
+			WriteResponseMessage(w, "this action works only with get method", "action works only for Post method", 400, false)
+			return
+		}
+		vars := r.URL.Query()
+		movieid := vars["movieid"]
+		m := make(map[string]interface{}, 1)
+		m["movieid"] = movieid[0]
+		result, err := dbSession.FindByQuery("movies", m)
+
+		if len(result) < 1 {
+			WriteResponseMessage(w, "no data available", "no data available", 400, false)
+			return
+		}
+		if err != nil {
+			WriteResponseMessage(w, "error in db connection", err.Error(), 400, false)
+			return
+		}
+		jData, err := json.Marshal(result)
+		if err != nil {
+			WriteResponseMessage(w, "error in reading the result", err.Error(), 400, false)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(jData)
+	})
+}
+
+func UnAthenticated() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		WriteResponseMessage(w, "Unathenticated request", "", 400, true)
+	})
+}
+
+func GetMoviesByKey() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != "GET" {
+			WriteResponseMessage(w, "this action works only with get method", "action works only for Post method", 400, false)
+			return
+		}
+		vars := r.URL.Query()
+		key := vars["key"]
+		value := vars["value"]
+
+		result, err := dbSession.FindByRegEx("movies", key[0], value[0])
+		if err != nil {
+			WriteResponseMessage(w, "error in db connection", err.Error(), 400, false)
+			return
+		}
+		if len(result) < 1 {
+			WriteResponseMessage(w, "no data available", "no data available", 400, false)
+			return
+		}
+		jData, err := json.Marshal(result)
+		if err != nil {
+			WriteResponseMessage(w, "error in reading the result", err.Error(), 400, false)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(jData)
+	})
+}
+
+func GetAll(collection string) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != "GET" {
+			WriteResponseMessage(w, "this action works only with get method", "action works only for Post method", 400, false)
+			return
+		}
+		result, err := dbSession.FindAll(collection)
+
+		if err != nil {
+			WriteResponseMessage(w, "error in db connection", err.Error(), 400, false)
+			return
+		}
+
+		if len(result) < 1 {
+			WriteResponseMessage(w, "no data available", "no data available", 400, false)
+			return
+		}
+		jData, err := json.Marshal(result)
+		if err != nil {
+			WriteResponseMessage(w, "error in reading the result", err.Error(), 400, false)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(jData)
+	})
+}
+
+func GetByID(collection string) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == "GET" {
+			vars := mux.Vars(r)
+			_id := vars["id"]
+			result, err := dbSession.ListByID(collection, _id)
+			if err != nil {
+				w.WriteHeader(400)
+				fmt.Fprintln(w, err.Error())
+			} else {
+
+				jData, err := json.Marshal(result)
+				if err != nil {
+					w.WriteHeader(400)
+					fmt.Fprintln(w, err.Error())
+				}
+				w.Header().Set("Content-Type", "application/json")
+				w.Write(jData)
+			}
+		}
+	})
+}
+
+func GetPicByMovieID() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != "GET" {
+			WriteResponseMessage(w, "this action works only with get method", "action works only for Post method", 400, false)
+			return
+		}
+		vars := r.URL.Query()
+		movieid := vars["movieid"]
+		m := make(map[string]interface{}, 1)
+		m["movieid"] = movieid[0]
+		result, err := dbSession.FindByQueryAll("pics", m)
+		if err != nil {
+			WriteResponseMessage(w, "error in db connection", err.Error(), 400, false)
+			return
+		}
+
+		if len(result) < 1 {
+			WriteResponseMessage(w, "no data available", "no data available", 400, false)
+			return
+		}
+		jData, err := json.Marshal(result)
+		if err != nil {
+			WriteResponseMessage(w, "error in reading the result", err.Error(), 400, false)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(jData)
+	})
+}
+
+func GetPicDetailsByPicID() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != "GET" {
+			WriteResponseMessage(w, "this action works only with get method", "action works only for Post method", 400, false)
+			return
+		}
+		vars := r.URL.Query()
+		picid := vars["picid"]
+		m := make(map[string]interface{}, 1)
+		m["picid"] = picid[0]
+		result, err := dbSession.FindByQuery("pics", m)
+		if err != nil {
+			WriteResponseMessage(w, "error in db connection", err.Error(), 400, false)
+			return
+		}
+
+		if len(result) < 1 {
+			WriteResponseMessage(w, "no data available", "no data available", 400, false)
+			return
+		}
+		jData, err := json.Marshal(result)
+		if err != nil {
+			WriteResponseMessage(w, "error in reading the result", err.Error(), 400, false)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(jData)
+
+	})
+}
+
+func AddPic() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var picid string
+		if r.Method != "POST" {
+			WriteResponseMessage(w, "this action works only for Post method", "action works only for Post method", 400, false)
+			return
+		}
+		r.ParseMultipartForm(32 << 20)
+		movieid := r.FormValue("movieid")
+		title := r.FormValue("title")
+		relevance := r.FormValue("relevance")
+		option := r.FormValue("option")
+
+		if movieid == "" {
+			WriteResponseMessage(w, "movieid cannot be empty", "movieid cannot be empty", 400, false)
+			return
+		}
+
+		if title == "" {
+			WriteResponseMessage(w, "title formdata is empty", "title formdata is empty", 400, false)
+			return
+		}
+		//FileMutex.Lock()
+		count, err := GetFileCount(Root + movieid + "/" + CounterFile)
+		picid = strconv.Itoa(count)
+		//FileMutex.Unlock()
+
+		pic := models.Pic{}
+		pic.PicId = picid
+		pic.MovieId = movieid
+		pic.Title = title
+		pic.Option = option
+		pic.Relevance = relevance
+		pic.Status = "Active"
+		pic.Timestamp = time.Now().String()
+
+		if models.ValidatePic(pic) != "" {
+			WriteResponseMessage(w, models.ValidatePic(pic), models.ValidatePic(pic), 400, false)
+			return
+		}
+
+		file, _, err := r.FormFile("uploadfile")
+
+		if err != nil {
+			WriteResponseMessage(w, "upload failure", err.Error(), 400, false)
+			return
+		}
+		defer file.Close()
+		//var filePath string
+		filePath := Root + movieid + "/" + Temp + picid
+
+		f, err := os.OpenFile(filePath, os.O_WRONLY|os.O_CREATE, 0666)
+		if err != nil {
+			WriteResponseMessage(w, "unable to open upload file", err.Error(), 400, false)
+			return
+		}
+		defer f.Close()
+		_, err = io.Copy(f, file)
+
+		if err != nil {
+			WriteResponseMessage(w, "file is not copied to destination", err.Error(), 400, false)
+			return
+		}
+
+		err = dbSession.Insert("pics", pic)
+
+		if err != nil {
+			WriteResponseMessage(w, "file is not copied to the database", err.Error(), 400, false)
+			return
+		}
+
+		width, height := GetImageDimension(Root + movieid + "/" + Temp + picid)
+
+		if width < MaxWidth || height < MaxHeight {
+			go MoveFile(Root+movieid+"/"+Temp+picid, Root+movieid+"/"+Invalid+picid)
+			WriteResponseMessage(w, "short", picid, 400, true)
+			return
+		} else {
+			MoveFile(Root+movieid+"/"+Temp+picid, Root+movieid+"/"+FullImage+picid)
+			chPic <- Root + movieid + "/" + FullImage + picid
+		}
+
+		// The below is important stuff.. this sends a signal to the channel to further verify whether the pic is nude or not and subsequently
+		// other nonblocking stuff
+		//chPic <- filePath
+
+		WriteResponseMessage(w, "Pic successfully uploaded", picid, 200, true)
+		return
+	})
+}
+
+func WriteResponseMessage(w http.ResponseWriter, message string, trace string, status int, success bool) {
+	var msg models.Message
+	msg.MSG = message
+	msg.Success = success
+	msg.Status = status
+	msg.Trace = trace
+	msg.Success = success
+	w.Header().Set("Content-Type", "application/json")
+	buf, _ := json.Marshal(msg)
+	w.Write(buf)
+}
+
+func CreateDirectory(directory string) (err error) {
+	if _, err = os.Stat(directory); os.IsNotExist(err) {
+		return os.Mkdir(directory, os.ModePerm)
+	}
+	return nil
+}
+
+func GUID() string {
+	// generate 32 bits timestamp
+	unix32bits := uint32(time.Now().UTC().Unix())
+
+	buff := make([]byte, 12)
+
+	rand.Read(buff)
+	return fmt.Sprintf("%x-%x-%x-%x-%x-%x", unix32bits, buff[0:2], buff[2:4], buff[4:6], buff[6:8], buff[8:])
+}
+
+func ValidatePicture() {
+	for v := range chPic {
+		go CheckNudity(v)
+		//go ResizeAndMove(v)
+	}
+}
+
+func CheckNudity(imagePath string) {
+	fmt.Println(imagePath)
+	isNude, err := nude.IsNude(imagePath)
+	fmt.Println(err)
+	if isNude == true {
+		fmt.Println("Yes it is a nude image")
+	} else {
+		fmt.Println("No it is not nude image")
+	}
+}
+
+func ResizeAndMove(file string, width, height int) {
+	/*
+		// open "test.jpg"
+		file, err := os.Open("test.jpg")
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		// decode jpeg into image.Image
+		img, err := jpeg.Decode(file)
+		if err != nil {
+			log.Fatal(err)
+		}
+		file.Close()
+
+		// resize to width 1000 using Lanczos resampling
+		// and preserve aspect ratio
+		m := resize.Resize(w, h, img, resize.Lanczos3)
+
+		out, err := os.Create("test_resized.jpg")
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer out.Close()
+
+		// write new image to file
+
+		jpeg.Encode(out, m, nil)*/
+}
+
+func Process(file string) {
+	//Step1 check whether image is shoort
+	w, h := GetImageDimension(file)
+	if w < MaxWidth || h < MaxHeight {
+
+	} else {
+
+	}
+}
+
+func CreateFile(filename string) (err error) {
+	file, err := os.Create(filename)
+	if err != nil {
+		return nil
+	}
+	_, err = file.WriteString("0")
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func GetFileCount(filename string) (count int, err error) {
+	FileMutex := &sync.Mutex{}
+	FileMutex.Lock()
+	defer FileMutex.Unlock()
+	data, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return count, err
+	}
+	count, err = strconv.Atoi(string(data))
+	if err != nil {
+		return count, err
+	}
+	count = count + 1
+	ioutil.WriteFile(filename, []byte(strconv.Itoa(count)), 0644)
+
+	return count, err
+}
+
+func GetImageDimension(imagePath string) (int, int) {
+	file, err := os.Open(imagePath)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%v\n", err)
+	}
+
+	image, _, err := image.DecodeConfig(file)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%s: %v\n", imagePath, err)
+	}
+	return image.Width, image.Height
+}
+
+func GetImageDimension1(file io.Reader) (int, int) {
+	image, _, err := image.DecodeConfig(file)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%v\n", err)
+	}
+	fmt.Println(image.Width, image.Height)
+	return image.Width, image.Height
+}
+
+func WriteToLog(method, logtype, details string) {
+	appLog, err := os.Create("app.log")
+	if err != nil {
+		fmt.Println(err)
+	}
+	log.Println(method, ":", logtype, ":", details)
+	log.SetOutput(appLog)
+}
+
+func MoveFile(src, dest string) error {
+	err := os.Rename(src, dest)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func CopyFile(filePath string, file io.ReadCloser) (err error) {
+	//defer file.Close()
+	f, err := os.OpenFile(filePath, os.O_WRONLY|os.O_CREATE, 0666)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	_, err = io.Copy(f, file)
+
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func SplitPath(path string) (root, movieid, folder, file string) {
+	s := strings.Split(path, "/")
+	if len(s) == 4 {
+		root = s[0]
+		movieid = s[1]
+		folder = s[2]
+		file = s[3]
+		return root, movieid, folder, file
+	}
+	return "", "", "", ""
+}
+
+//returns true when athenticated false when not
+//athentication headers are obtained from r
+func IsAuthenticated(r *http.Request) bool {
+	//fmt.Println(r)
+	return true
+}
+
+//Should have clarity on what should be done asynchronously and what should be done synchronously ....
+//Each call should come thru a middleware

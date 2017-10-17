@@ -1,0 +1,30 @@
+log: 2017/03/20 20:58:48 logutil.go:34: [Call On URI: localhost:9392 /FetchMovielist  from the following IP address: [::1]:50301]
+log: 2017/03/20 20:59:03 logutil.go:34: [Call On URI: localhost:9392 /FetchAllMovies  from the following IP address: [::1]:50301]
+log: 2017/03/20 21:53:43 logutil.go:34: [Call On URI: 192.168.1.4:9392 /fetchallmovies  from the following IP address: 192.168.1.3:48085]
+log: 2017/03/20 21:53:43 logutil.go:34: [Call On URI: 192.168.1.4:9392 /favicon.ico  from the following IP address: 192.168.1.3:48085]
+log: 2017/03/20 21:54:22 logutil.go:34: [Call On URI: 192.168.1.4:9392 /fetchallmovies  from the following IP address: 192.168.1.3:48085]
+log: 2017/03/20 21:54:29 logutil.go:34: [Call On URI: 192.168.1.4:9392 /fetchallmovies  from the following IP address: 192.168.1.3:48085]
+log: 2017/03/20 21:54:52 logutil.go:34: [Call On URI: localhost:9392 /FetchAllMovies  from the following IP address: [::1]:55241]
+log: 2017/03/20 21:54:58 logutil.go:34: [Call On URI: localhost:9392 /FetchAllMovies  from the following IP address: [::1]:55241]
+log: 2017/03/20 21:55:11 logutil.go:34: [Call On URI: 192.168.1.4:9392 /FetchAllMovies  from the following IP address: 192.168.1.4:55563]
+log: 2017/03/20 21:55:17 logutil.go:34: [Call On URI: 192.168.1.4:9392 /FetchAllMovies  from the following IP address: 192.168.1.3:48098]
+log: 2017/03/20 21:57:23 logutil.go:34: [Call On URI: 192.168.1.4:9392 /FetchAllMovies  from the following IP address: 192.168.1.3:48103]
+log: 2017/03/20 21:59:57 logutil.go:34: [Call On URI: 192.168.1.4:9392 /FetchAllMovies  from the following IP address: 192.168.1.3:48111]
+log: 2017/03/20 22:02:19 logutil.go:34: [Call On URI: 192.168.1.4:9392 /fetchallmovies  from the following IP address: 192.168.1.3:48113]
+log: 2017/03/20 22:02:49 logutil.go:34: [Call On URI: 192.168.1.4:9392 /FetchAllMovies  from the following IP address: 192.168.1.3:48119]
+log: 2017/03/20 22:07:04 logutil.go:34: [Call On URI: 192.168.1.4:9392 /FetchAllMovies  from the following IP address: 192.168.1.3:48123]
+log: 2017/03/20 22:22:09 logutil.go:34: [Call On URI: 192.168.1.4:9392 /FetchAllMovies  from the following IP address: 192.168.1.3:48139]
+log: 2017/03/20 22:22:54 logutil.go:34: [Call On URI: 192.168.1.4:9392 /FetchAllMovies  from the following IP address: 192.168.1.3:48141]
+log: 2017/03/20 22:34:04 logutil.go:34: [Call On URI: 192.168.1.4:9392 /FetchAllMovies  from the following IP address: 192.168.1.3:48177]
+log: 2017/03/20 22:34:09 logutil.go:34: [Call On URI: 192.168.1.4:9392 /FetchAllMovies  from the following IP address: 192.168.1.3:48178]
+log: 2017/03/20 22:34:21 logutil.go:34: [Call On URI: 192.168.1.4:9392 /FetchAllMovies  from the following IP address: 192.168.1.3:48179]
+log: 2017/03/20 22:34:51 logutil.go:34: [Call On URI: localhost:9392 /AddMovie  from the following IP address: [::1]:62116]
+log: 2017/03/20 22:34:53 logutil.go:45: {"message":"Movie successfully added","success":true,"status":200,"trace":"58d00bb4-52fd-fc07-2182-654f-163f5f0f"}
+log: 2017/03/20 22:35:01 logutil.go:34: [Call On URI: localhost:9392 /AddMovie  from the following IP address: [::1]:62116]
+log: 2017/03/20 22:35:01 logutil.go:45: {"message":"Movie successfully added","success":true,"status":200,"trace":"58d00bbd-9a62-1d72-9566-c74d-10037c4d"}
+log: 2017/03/20 22:35:28 logutil.go:34: [Call On URI: localhost:9392 /AddMovie  from the following IP address: [::1]:62116]
+log: 2017/03/20 22:35:28 logutil.go:45: {"message":"Movie successfully added","success":true,"status":200,"trace":"58d00bd8-7bbb-0407-d1e2-c649-81855ad8"}
+log: 2017/03/20 22:35:30 logutil.go:34: [Call On URI: localhost:9392 /AddMovie  from the following IP address: [::1]:62116]
+log: 2017/03/20 22:35:31 logutil.go:45: {"message":"movie details are alredy existed in the system","success":false,"status":400,"trace":"movie details are alredy existed in the system"}
+log: 2017/03/20 22:35:44 logutil.go:34: [Call On URI: localhost:9392 /AddMovie  from the following IP address: [::1]:62116]
+log: 2017/03/20 22:35:44 logutil.go:45: {"message":"Movie successfully added","success":true,"status":200,"trace":"58d00be8-681d-0d86-d1e9-1e00-167939cb"}
