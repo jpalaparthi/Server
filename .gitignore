@@ -1,6 +1,5 @@
 #ignore the below file
  *.exe
- crawler
  *.json
 
 # dont ignore this below file:)
