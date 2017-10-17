@@ -1,17 +1,33 @@
 package models
 
-import "gopkg.in/mgo.v2/bson"
+import (
+	"encoding/json"
+)
+
+type Stringer interface {
+	String() string
+}
 
 type Log struct {
-	ID          bson.ObjectId `json:"id" bson:"_id,omitempty"`
-	User        string        `json:"user" bson:"user"`
-	URI         string        `json:"uri" bson:"uri"`
-	IP          string        `json:"ip" bson:"ip"`
-	Input       string        `json:"input" bson:"input"`
-	Output      string        `json:"output" bson:"output"`
-	Result_Type string        `json:"result_type" bson:"result_type"`
-	Device      string        `json:"device" bson:"device"`
-	Device_Name string        `json:"device_name" bson:"device_name"`
-	Status      string        `json:"status" bson:"status"`
-	TimeStamp   string        `json:"timestamp" bson:"timestamp"`
+	TimeStamp string `json:"timestamp" bson:"timestamp"`
+	Status    string `json:"status" bson:"status"`
+	User      string `json:"user" bson:"user"`
+	Message   string `json:"message" bson:"message"`
+	Source    string `json:"source" bson:"source"`
+}
+
+func (l Log) String() (s string) {
+	buf, err := json.Marshal(l)
+	if err != nil {
+		return ""
+	}
+	return string(buf)
+}
+
+func (l Log) Bytes() []byte {
+	buf, err := json.Marshal(l)
+	if err != nil {
+		return nil
+	}
+	return buf
 }

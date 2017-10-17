@@ -87,7 +87,6 @@ func (s *Session) ListByID(col string, id string) (map[string]interface{}, error
 
 func (s *Session) FindByQuery(col string, query map[string]interface{}) (map[string]interface{}, error) {
 	var result map[string]interface{}
-	s.Sess.DB(s.DBName).C((col))
 	err := s.Sess.DB(s.DBName).C(col).Find(bson.M(query)).One(&result)
 	if err != nil {
 		return result, err
@@ -97,9 +96,55 @@ func (s *Session) FindByQuery(col string, query map[string]interface{}) (map[str
 	return result, nil
 }
 
-func (s *Session) ListAll(col string) ([]interface{}, error) {
+func (s *Session) FindByQueryAll(col string, query map[string]interface{}) ([]interface{}, error) {
 	var result []interface{}
-	err := s.Sess.DB(s.DBName).C(col).Find(nil).All(&result)
+	err := s.Sess.DB(s.DBName).C(col).Find(bson.M(query)).Sort("-_id").All(&result)
+
+	if err != nil {
+		return result, err
+	} else {
+		return result, nil
+	}
+	return result, nil
+}
+
+func (s *Session) FindByRegEx(col, key, value string) ([]interface{}, error) {
+	var result []interface{}
+	err := s.Sess.DB(s.DBName).C(col).Find(bson.M{key: &bson.RegEx{Pattern: value, Options: "i"}}).All(&result)
+	if err != nil {
+		return result, err
+	} else {
+		return result, nil
+	}
+	return result, nil
+}
+
+/*func (s *Session) FindByIn1(col, key string, values []string) ([]interface{}, error) {
+	var result []interface{}
+	err := s.Sess.DB(s.DBName).C(col).Find(bson.M{key: &bson.M{"$in": values}}).All(&result)
+	if err != nil {
+		return result, err
+	} else {
+		return result, nil
+	}
+	return result, nil
+}
+
+func (s *Session) FindByIn(col string, query map[string]interface{}) ([]interface{}, error) {
+	var result []interface{}
+	err := s.Sess.DB(s.DBName).C(col).Find(bson.M(query)).All(&result)
+
+	if err != nil {
+		return result, err
+	} else {
+		return result, nil
+	}
+	return result, nil
+}*/
+
+func (s *Session) FindAll(col string) ([]interface{}, error) {
+	var result []interface{}
+	err := s.Sess.DB(s.DBName).C(col).Find(nil).Sort("-_id:").All(&result)
 	if err != nil {
 		log.Println(err)
 		return result, err
