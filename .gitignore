@@ -1,6 +1,7 @@
-!.gitignore
-!User-Management
-!mgoSession
-!models
+#ignore the below file
+ *.exe
+ crawler
+ *.json
 
-*
+# dont ignore this below file:)
+!.gitignore
